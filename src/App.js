@@ -12,6 +12,7 @@ import NotFoundPage from './Components/NotFoundPage';
 
 function App(){
   return(
+    //Navigational routes
   <Router>
     <div>
       <HeaderComponent/>
