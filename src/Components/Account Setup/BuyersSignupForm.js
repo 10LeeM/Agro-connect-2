@@ -3,6 +3,7 @@ import Input from './Dumb components/Input';
 import Select from './Dumb components/Select';
 import Button from './Dumb components/Button';
 
+
 class BuyersSignupForm extends Component {
     constructor(props){
         super(props);
@@ -18,16 +19,29 @@ class BuyersSignupForm extends Component {
 
             operationScaleOptions:['Large', 'Medium', 'Small']
         }
+        //Set of validators for Buyers signup form
 
+        
+
+        // Binds class methods to react class instance
         this.handleInput = this.handleInput.bind(this);
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
         this.handleClearForm = this.handleClearForm.bind(this);
+        this.displayValiadationErrors=this.displayValiadationErrors.bind(this);
+        this.updateValidators = this.updateValidators.bind(this);
     }
+    
+
+    /**
+     * Function called whenever a form input is changed 
+     * Which in turn updates the state of this component and validators
+     */
 
     handleInput(e) {
         let value = e.target.value;
         let name = e.target.name;
 
+        this.updateValidators(name, e.target.value);
         this.setState(prevState => {
             return{
                 newBuyer : {
@@ -42,7 +56,7 @@ class BuyersSignupForm extends Component {
 
         let userData = this.state.newBuyer;
         
-        fetch('http://localhost:3000' , {
+        fetch('http://localhost:3000/' , {
             method: "POST",
             body: JSON.stringify(userData),
             headers:{
@@ -70,6 +84,52 @@ class BuyersSignupForm extends Component {
         });
     }
 
+    /**
+     * Updates the state of the validator for the specified validator
+     */
+
+     updateValidators(fieldName, value) {
+         this.validators[fieldName].errors = [];
+         this.validators[fieldName].state = value;
+         this.validators[fieldName].valid = true;
+         this.validators[fieldName].rules.forEach((rule) => {
+
+            if (rule.test instanceof RegExp) {
+                if (!rule.test.test(value)){
+                    this.validators[fieldName].errors.push(rule.message);
+                    this.validators[fieldName].valid = false;
+                }
+            } else if (typeof rule.test === 'function') {
+                if (!rule.test(value)) {
+                    this.validators[fieldName].errors.push(rule.message);
+                    this.validators[fieldName].valid = false;
+                }
+            }
+         });
+     }
+     
+
+     // Function to display validation errors for a given input field
+
+     displayValiadationErrors(fieldName) {
+         const validator = this.validators[fieldName];
+         const result = '';
+
+         if (validator && !validator.valid) {
+             const errors = validator.errors.map((info, index) => {
+                 return <span className="error" key={index}>* {info}</span>;
+             });
+
+             return (
+                 <div className="errors">
+                     {errors}
+                 </div>
+             );
+         }
+
+         return result;
+     }
+
     render() {
         return (
            <form className="form-container" onSubmit={this.handleFormSubmit}>
@@ -80,6 +140,8 @@ class BuyersSignupForm extends Component {
                     value={this.state.newBuyer.name}
                     placeholder={'Enter your name'}
                     handleChange={this.handleInput}/> {/*Name of new buyer*/}
+                   
+                    
 
                <Input type={'email'}
                     title={'Email'}
